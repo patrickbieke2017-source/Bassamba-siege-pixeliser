@@ -50,6 +50,9 @@ class Game {
     this.level = 1;
     this.bullets = [];
     this.enemies = [];
+    this.pickups = [];
+    this.shakeTimer = 0;
+    this.shakeMagnitude = 0;
     this.scoreEl.textContent = this.score;
     this.startLevel();
 
@@ -127,6 +130,20 @@ class Game {
 
     this.handleCollisions();
 
+    // Pickups: count down lifespan and let the player walk over them to heal
+    for (const pickup of this.pickups) {
+      pickup.life -= dt;
+      const dist = Math.hypot(pickup.x - this.player.x, pickup.y - this.player.y);
+      if (dist < pickup.radius + this.player.radius) {
+        this.player.health = Math.min(this.player.maxHealth, this.player.health + 25);
+        pickup.life = 0;
+        Sound.heal();
+      }
+    }
+    this.pickups = this.pickups.filter((p) => p.life > 0);
+
+    if (this.shakeTimer > 0) this.shakeTimer -= dt;
+
     // Cleanup
     this.bullets = this.bullets.filter((b) => b.alive);
     this.enemies = this.enemies.filter((e) => e.alive);
@@ -157,6 +174,9 @@ class Game {
             this.score += enemy.scoreValue;
             this.scoreEl.textContent = this.score;
             Sound.enemyDeath();
+            if (Math.random() < 0.15) {
+              this.pickups.push({ x: enemy.x, y: enemy.y, radius: 5, life: 8 });
+            }
           } else {
             Sound.enemyHit();
           }
@@ -170,7 +190,11 @@ class Game {
       if (!bullet.alive || bullet.fromPlayer) continue;
       if (bullet.hits(this.player)) {
         bullet.alive = false;
-        if (this.player.takeDamage(8)) Sound.playerHit();
+        if (this.player.takeDamage(8)) {
+          Sound.playerHit();
+          this.shakeTimer = 0.2;
+          this.shakeMagnitude = 4;
+        }
       }
     }
 
@@ -179,7 +203,11 @@ class Game {
       if (!enemy.alive || enemy.dying) continue;
       const dist = Math.hypot(enemy.x - this.player.x, enemy.y - this.player.y);
       if (dist < enemy.radius + this.player.radius) {
-        if (this.player.takeDamage(enemy.contactDamage)) Sound.playerHit();
+        if (this.player.takeDamage(enemy.contactDamage)) {
+          Sound.playerHit();
+          this.shakeTimer = 0.2;
+          this.shakeMagnitude = 4;
+        }
       }
     }
   }
@@ -228,9 +256,57 @@ class Game {
 
     if (this.state === 'menu') return;
 
-    for (const enemy of this.enemies) enemy.draw(this.ctx);
-    for (const bullet of this.bullets) bullet.draw(this.ctx);
-    this.player.draw(this.ctx);
+    const ctx = this.ctx;
+    let shakeX = 0;
+    let shakeY = 0;
+    if (this.shakeTimer > 0) {
+      shakeX = (Math.random() * 2 - 1) * this.shakeMagnitude;
+      shakeY = (Math.random() * 2 - 1) * this.shakeMagnitude;
+    }
+
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    for (const pickup of this.pickups) Sprites.drawHealthPack(ctx, pickup.x, pickup.y, pickup.life);
+    for (const enemy of this.enemies) enemy.draw(ctx);
+    for (const bullet of this.bullets) bullet.draw(ctx);
+    this.player.draw(ctx);
+    this.drawEdgeIndicators(ctx);
+
+    ctx.restore();
+
+    if (this.player.hitFlash > 0) {
+      ctx.fillStyle = `rgba(255, 0, 0, ${0.35 * this.player.hitFlash})`;
+      ctx.fillRect(0, 0, this.width, this.height);
+    }
+  }
+
+  // Draws an arrow at the screen edge for each enemy that is currently
+  // off-screen, pointing toward it and colored by enemy type.
+  drawEdgeIndicators(ctx) {
+    const margin = 10;
+    for (const enemy of this.enemies) {
+      if (enemy.dying) continue;
+      if (enemy.x >= 0 && enemy.x <= this.width && enemy.y >= 0 && enemy.y <= this.height) continue;
+
+      const cx = this.width / 2;
+      const cy = this.height / 2;
+      const angle = Math.atan2(enemy.y - cy, enemy.x - cx);
+
+      // Intersect the ray from center toward the enemy with the inset screen rect.
+      const halfW = this.width / 2 - margin;
+      const halfH = this.height / 2 - margin;
+      const dx = Math.cos(angle);
+      const dy = Math.sin(angle);
+      const scale = Math.min(
+        dx !== 0 ? Math.abs(halfW / dx) : Infinity,
+        dy !== 0 ? Math.abs(halfH / dy) : Infinity
+      );
+
+      const ix = cx + dx * scale;
+      const iy = cy + dy * scale;
+      Sprites.drawEdgeIndicator(ctx, ix, iy, angle, enemy.type);
+    }
   }
 
   loop(timestamp) {

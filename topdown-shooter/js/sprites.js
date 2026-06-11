@@ -142,5 +142,49 @@ const Sprites = {
       ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
     }
     ctx.restore();
+  },
+
+  // ---------------------------------------------------------------
+  // Off-screen indicator: small arrow at the screen edge pointing
+  // toward an enemy that hasn't entered the play area yet
+  // ---------------------------------------------------------------
+  drawEdgeIndicator(ctx, x, y, angle, type) {
+    const colors = {
+      shooter: '#b25aff',
+      swarmer: '#ffb733',
+      tank: '#7a8f6c',
+      chaser: '#ff5050'
+    };
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = colors[type] || '#ff5050';
+    ctx.beginPath();
+    ctx.moveTo(6, 0);
+    ctx.lineTo(-4, -4);
+    ctx.lineTo(-4, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  },
+
+  // ---------------------------------------------------------------
+  // Health pickup: a small pulsing cross
+  // ---------------------------------------------------------------
+  drawHealthPack(ctx, x, y, life) {
+    // life: seconds remaining before the pickup expires
+    const blinking = life < 2.5 && Math.floor(life * 6) % 2 === 0;
+    if (blinking) return;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#1c1c2e';
+    ctx.fillRect(-5, -5, 10, 10);
+    ctx.fillStyle = '#3a9c00';
+    ctx.fillRect(-4, -4, 8, 8);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-3, -1, 6, 2);
+    ctx.fillRect(-1, -3, 2, 6);
+    ctx.restore();
   }
 };

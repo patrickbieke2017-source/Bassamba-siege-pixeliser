@@ -17,7 +17,7 @@ class Player {
     this.walkPhase = 0;
     this.moving = false;
     this.hitFlash = 0;
-    this.fireRate = 0.18; // seconds between shots
+    this.fireRate = 0.13; // seconds between shots
     this.shootTimer = 0;
     this.muzzleFlash = 0;
     this.invulnTimer = 0;

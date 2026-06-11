@@ -66,6 +66,10 @@ const Sound = {
   playerHit() {
     this.tone(110, 0.2, 'sawtooth', 0.15, 55);
   },
+  heal() {
+    this.tone(440, 0.08, 'sine', 0.1, 880);
+    setTimeout(() => this.tone(660, 0.1, 'sine', 0.1, 1320), 60);
+  },
   levelComplete() {
     [523, 659, 784, 1046].forEach((f, i) => {
       setTimeout(() => this.tone(f, 0.15, 'square', 0.1), i * 100);
