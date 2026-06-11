@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Siege - Top-Down Shooter</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game" width="320" height="240"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-left">
+        <div class="label">HEALTH</div>
+        <div id="health-bar-bg"><div id="health-bar"></div></div>
+      </div>
+      <div class="hud-right">
+        <div>SCORE: <span id="score">0</span></div>
+        <div>LEVEL: <span id="level">1</span></div>
+      </div>
+    </div>
+
+    <!-- Start Menu -->
+    <div id="menu-screen" class="overlay">
+      <h1>PIXEL SIEGE</h1>
+      <p class="subtitle">A Retro Top-Down Shooter</p>
+      <div class="controls">
+        <p><span class="key">ARROW KEYS</span> Move</p>
+        <p><span class="key">MOUSE</span> Aim</p>
+        <p><span class="key">CLICK</span> Shoot</p>
+        <p><span class="key">M</span> Toggle Sound</p>
+        <p><span class="key">ESC</span> Pause</p>
+      </div>
+      <button id="start-btn">PRESS START</button>
+    </div>
+
+    <!-- Level Complete -->
+    <div id="level-complete-screen" class="overlay hidden">
+      <h2 id="level-complete-title">LEVEL 1 COMPLETE!</h2>
+      <p id="level-complete-score">Score: 0</p>
+      <p class="blink">Get Ready...</p>
+    </div>
+
+    <!-- Game Over -->
+    <div id="game-over-screen" class="overlay hidden">
+      <h1>GAME OVER</h1>
+      <p id="final-score">Score: 0</p>
+      <p id="final-level">Reached Level: 1</p>
+      <button id="restart-btn">RESTART</button>
+    </div>
+
+    <!-- Pause -->
+    <div id="pause-screen" class="overlay hidden">
+      <h2>PAUSED</h2>
+      <p>Press ESC to resume</p>
+    </div>
+  </div>
+
+  <script src="js/sound.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/bullet.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/enemy.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
