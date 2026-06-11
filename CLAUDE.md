@@ -38,3 +38,5 @@ The repo root also has two unrelated standalone files (`tictactoe.html`, `tic-ta
 ## Git / GitHub workflow
 
 This project uses Git with clean, descriptive commit messages, committed and pushed to GitHub after each meaningful change: https://github.com/patrickbieke2017-source/Bassamba-siege-pixeliser (remote `origin`, branch `master`).
+
+**Commit and push regularly as you work** — after completing each meaningful change or task (not just at the end of a session), `git add` the relevant files, commit with a clean descriptive message, and `git push` to `origin/master`. This ensures progress is never lost and the repo always reflects the current state of the project.
