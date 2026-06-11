@@ -116,7 +116,7 @@ class Game {
 
     // Enemies
     for (const enemy of this.enemies) {
-      const bullet = enemy.update(dt, this.player);
+      const bullet = enemy.update(dt, this.player, this.width, this.height);
       if (bullet) this.bullets.push(bullet);
     }
 

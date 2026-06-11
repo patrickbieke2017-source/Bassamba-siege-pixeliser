@@ -49,7 +49,7 @@ class Enemy {
   }
 
   // Returns a Bullet if this enemy fired this frame, otherwise null.
-  update(dt, player) {
+  update(dt, player, canvasWidth, canvasHeight) {
     if (this.hitFlash > 0) this.hitFlash -= dt * 8;
 
     if (this.dying) {
@@ -64,14 +64,20 @@ class Enemy {
     this.angle = Math.atan2(dy, dx);
 
     if (this.type === 'shooter') {
-      if (dist > this.shootRange) {
+      // Shooters can spawn just outside the screen already within shootRange;
+      // require them to enter the play area before they stop and start firing.
+      const margin = 16;
+      const inBounds = this.x > margin && this.x < canvasWidth - margin &&
+                       this.y > margin && this.y < canvasHeight - margin;
+
+      if (dist > this.shootRange || !inBounds) {
         this.x += Math.cos(this.angle) * this.speed * dt;
         this.y += Math.sin(this.angle) * this.speed * dt;
         this.walkPhase += dt * 10;
       }
 
       this.shootTimer -= dt;
-      if (this.shootTimer <= 0 && dist < this.shootRange + 60) {
+      if (inBounds && this.shootTimer <= 0 && dist < this.shootRange + 60) {
         this.shootTimer = this.shootCooldown;
         return new Bullet(this.x, this.y, this.angle, false);
       }
