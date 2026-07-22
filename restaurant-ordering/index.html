@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Bistro — Digital Ordering</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #1a1208;
+      --surface: #241a0c;
+      --surface2: #2e2010;
+      --border: #4a3520;
+      --gold: #d4a017;
+      --gold-light: #f0c040;
+      --red: #c0392b;
+      --green: #27ae60;
+      --text: #f0e6d0;
+      --text-muted: #9a8060;
+      --radius: 8px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #2e1a04, #1a0e02);
+      border-bottom: 2px solid var(--gold);
+      padding: 20px 24px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2rem;
+      color: var(--gold-light);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    header p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 20px;
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    @media (max-width: 780px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Section headings ── */
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Menu ── */
+    .menu-category + .menu-category { margin-top: 20px; }
+    .category-label {
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .menu-item {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 6px;
+      transition: border-color 0.15s;
+    }
+    .menu-item:hover { border-color: var(--gold); }
+    .item-num {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-align: center;
+    }
+    .item-info { min-width: 0; }
+    .item-name { font-size: 0.95rem; font-weight: 600; }
+    .item-price { font-size: 0.85rem; color: var(--gold-light); margin-top: 2px; }
+    .add-btn {
+      background: var(--gold);
+      color: #1a1208;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .add-btn:hover { background: var(--gold-light); }
+
+    /* ── Order Panel ── */
+    .order-panel {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+    }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    /* ── Order items ── */
+    #order-list { list-style: none; }
+    #order-list li {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .order-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .order-item-name { font-size: 0.9rem; font-weight: 600; flex: 1; }
+    .order-item-remove {
+      background: none;
+      border: none;
+      color: var(--red);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .order-item-remove:hover { color: #e74c3c; }
+    .order-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .qty-label { font-size: 0.75rem; color: var(--text-muted); }
+    .qty-input {
+      width: 60px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: 0.9rem;
+      padding: 3px 7px;
+      text-align: center;
+    }
+    .qty-input:focus { outline: none; border-color: var(--gold); }
+    .order-item-total {
+      margin-left: auto;
+      font-weight: 700;
+      color: var(--gold-light);
+      font-size: 0.9rem;
+    }
+    .note-input {
+      width: 100%;
+      margin-top: 7px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 5px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      padding: 5px 8px;
+      resize: none;
+      font-family: inherit;
+    }
+    .note-input:focus { outline: none; border-color: var(--gold); color: var(--text); }
+    .note-input::placeholder { color: var(--border); }
+
+    #empty-msg {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    /* ── Bill button ── */
+    .bill-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px;
+      background: var(--gold);
+      color: #1a1208;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .bill-btn:hover { background: var(--gold-light); }
+    .bill-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+    /* ── Bill Receipt ── */
+    #bill-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    #bill-section.hidden { display: none; }
+
+    .receipt {
+      background: #fdf8f0;
+      color: #1a1208;
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      font-family: 'Courier New', Courier, monospace;
+      max-width: 520px;
+      margin: 0 auto;
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 40px rgba(212,160,23,0.25);
+    }
+    .receipt-header { text-align: center; margin-bottom: 16px; }
+    .receipt-header h2 { font-size: 1.3rem; letter-spacing: 3px; text-transform: uppercase; }
+    .receipt-header p { font-size: 0.75rem; color: #5a4020; margin-top: 2px; }
+    .receipt-divider {
+      border: none;
+      border-top: 1px dashed #8a6020;
+      margin: 12px 0;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+    }
+    .receipt-row .label { flex: 1; }
+    .receipt-row .qty { width: 40px; text-align: center; color: #5a4020; }
+    .receipt-row .unit { width: 70px; text-align: right; color: #5a4020; }
+    .receipt-row .total { width: 80px; text-align: right; font-weight: 600; }
+    .receipt-note { font-size: 0.72rem; color: #7a5030; margin-bottom: 8px; font-style: italic; padding-left: 4px; }
+    .receipt-summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: #3a2010;
+    }
+    .receipt-grand {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 2px solid #1a1208;
+    }
+    .receipt-footer {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.75rem;
+      color: #5a4020;
+      letter-spacing: 1px;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--green);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 24px;
+      transition: transform 0.3s;
+      z-index: 999;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Validation error ── */
+    .qty-error { color: var(--red); font-size: 0.72rem; margin-top: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#127829; Pixel Bistro</h1>
+  <p>Digital Ordering System</p>
+</header>
+
+<div class="layout">
+
+  <!-- ── LEFT: Menu ── -->
+  <div id="menu-panel">
+    <div class="section-title">Our Menu</div>
+    <div id="menu-container"></div>
+  </div>
+
+  <!-- ── RIGHT: Order ── -->
+  <div class="order-panel">
+    <div class="panel">
+      <div class="section-title">Your Order</div>
+      <ul id="order-list"></ul>
+      <p id="empty-msg">No items added yet.</p>
+      <button class="bill-btn" id="bill-btn" onclick="generateBill()" disabled>
+        Generate Bill
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Bill ── -->
+<div id="bill-section" class="hidden">
+  <div class="section-title" style="max-width:1100px;margin:0 auto 12px;padding:0 16px;">Receipt</div>
+  <div class="receipt" id="receipt"></div>
+</div>
+
+<div id="toast">Item added to order!</div>
+
+<script>
+  const MENU = [
+    { id: 1,  name: "Pasta Arrabbiata",  category: "Main Course", price: 180 },
+    { id: 2,  name: "Margherita Pizza",  category: "Main Course", price: 220 },
+    { id: 3,  name: "Burger",            category: "Main Course", price: 150 },
+    { id: 4,  name: "Club Sandwich",     category: "Snacks",      price: 120 },
+    { id: 5,  name: "French Fries",      category: "Snacks",      price: 90  },
+    { id: 6,  name: "Garlic Bread",      category: "Snacks",      price: 80  },
+    { id: 7,  name: "Coffee",            category: "Beverages",   price: 120 },
+    { id: 8,  name: "Cold Drink",        category: "Beverages",   price: 60  },
+    { id: 9,  name: "Chocolate Cake",    category: "Desserts",    price: 140 },
+    { id: 10, name: "Ice Cream Sundae",  category: "Desserts",    price: 100 },
+  ];
+
+  // order: Map<itemId, { item, qty, note }>
+  const order = new Map();
+
+  /* ─── Render Menu ─── */
+  function renderMenu() {
+    const container = document.getElementById('menu-container');
+    const categories = [...new Set(MENU.map(i => i.category))];
+    container.innerHTML = categories.map(cat => {
+      const items = MENU.filter(i => i.category === cat);
+      return `
+        <div class="menu-category">
+          <div class="category-label">${cat}</div>
+          ${items.map(item => `
+            <div class="menu-item">
+              <div class="item-num">${item.id}</div>
+              <div class="item-info">
+                <div class="item-name">${item.name}</div>
+                <div class="item-price">&#8377;${item.price}</div>
+              </div>
+              <button class="add-btn" onclick="addItem(${item.id})">+ Add</button>
+            </div>
+          `).join('')}
+        </div>`;
+    }).join('');
+  }
+
+  /* ─── Add Item ─── */
+  function addItem(id) {
+    const item = MENU.find(i => i.id === id);
+    if (!item) return;
+    if (order.has(id)) {
+      order.get(id).qty += 1;
+    } else {
+      order.set(id, { item, qty: 1, note: '' });
+    }
+    renderOrder();
+    showToast(`${item.name} added!`);
+  }
+
+  /* ─── Remove Item ─── */
+  function removeItem(id) {
+    order.delete(id);
+    renderOrder();
+  }
+
+  /* ─── Update Qty ─── */
+  function updateQty(id, val) {
+    const entry = order.get(id);
+    if (!entry) return;
+    const errEl = document.getElementById(`err-${id}`);
+    const n = parseInt(val, 10);
+    if (!Number.isInteger(n) || n < 1 || String(val).trim() === '') {
+      errEl.textContent = 'Quantity must be a positive integer.';
+      document.getElementById(`total-${id}`).textContent = '—';
+      return;
+    }
+    errEl.textContent = '';
+    entry.qty = n;
+    document.getElementById(`total-${id}`).textContent = `₹${(entry.item.price * n).toFixed(0)}`;
+    updateBillBtn();
+  }
+
+  /* ─── Update Note ─── */
+  function updateNote(id, val) {
+    const entry = order.get(id);
+    if (entry) entry.note = val.trim();
+  }
+
+  /* ─── Render Order ─── */
+  function renderOrder() {
+    const list = document.getElementById('order-list');
+    const emptyMsg = document.getElementById('empty-msg');
+
+    if (order.size === 0) {
+      list.innerHTML = '';
+      emptyMsg.style.display = 'block';
+      updateBillBtn();
+      return;
+    }
+    emptyMsg.style.display = 'none';
+
+    list.innerHTML = [...order.values()].map(({ item, qty, note }) => `
+      <li>
+        <div class="order-item-top">
+          <div class="order-item-name">${item.id}. ${item.name}</div>
+          <button class="order-item-remove" onclick="removeItem(${item.id})" title="Remove">&#10005;</button>
+        </div>
+        <div class="order-controls">
+          <span class="qty-label">Qty:</span>
+          <input
+            class="qty-input"
+            type="number"
+            min="1"
+            value="${qty}"
+            id="qty-${item.id}"
+            oninput="updateQty(${item.id}, this.value)"
+          >
+          <span class="order-item-total" id="total-${item.id}">&#8377;${(item.price * qty).toFixed(0)}</span>
+        </div>
+        <div class="qty-error" id="err-${item.id}"></div>
+        <textarea
+          class="note-input"
+          rows="1"
+          placeholder="Special request (optional)..."
+          oninput="updateNote(${item.id}, this.value)"
+        >${note}</textarea>
+      </li>
+    `).join('');
+
+    updateBillBtn();
+  }
+
+  function updateBillBtn() {
+    document.getElementById('bill-btn').disabled = order.size === 0;
+  }
+
+  /* ─── Generate Bill ─── */
+  function generateBill() {
+    // Validate all quantities
+    let valid = true;
+    for (const [id, entry] of order) {
+      const input = document.getElementById(`qty-${id}`);
+      const n = parseInt(input.value, 10);
+      if (!Number.isInteger(n) || n < 1) {
+        document.getElementById(`err-${id}`).textContent = 'Quantity must be a positive integer.';
+        valid = false;
+      }
+    }
+    if (!valid) return;
+
+    const subtotal = [...order.values()].reduce((s, { item, qty }) => s + item.price * qty, 0);
+    const serviceCharge = subtotal * 0.05;
+    const gst = (subtotal + serviceCharge) * 0.18;
+    const grandTotal = subtotal + serviceCharge + gst;
+
+    const fmt = n => `₹${n.toFixed(2)}`;
+    const now = new Date();
+    const timeStr = now.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+
+    const itemRows = [...order.values()].map(({ item, qty, note }) => {
+      const lineTotal = item.price * qty;
+      return `
+        <div class="receipt-row">
+          <span class="label">${item.name}</span>
+          <span class="qty">x${qty}</span>
+          <span class="unit">${fmt(item.price)}</span>
+          <span class="total">${fmt(lineTotal)}</span>
+        </div>
+        ${note ? `<div class="receipt-note">&#8627; ${note}</div>` : ''}
+      `;
+    }).join('');
+
+    document.getElementById('receipt').innerHTML = `
+      <div class="receipt-header">
+        <h2>&#127829; Pixel Bistro</h2>
+        <p>${timeStr}</p>
+      </div>
+      <hr class="receipt-divider">
+      <div class="receipt-row" style="font-size:0.7rem;color:#7a5030;margin-bottom:8px;">
+        <span class="label">ITEM</span>
+        <span class="qty">QTY</span>
+        <span class="unit">UNIT</span>
+        <span class="total">TOTAL</span>
+      </div>
+      ${itemRows}
+      <hr class="receipt-divider">
+      <div class="receipt-summary-row">
+        <span>Subtotal</span>
+        <span>${fmt(subtotal)}</span>
+      </div>
+      <div class="receipt-summary-row">
+        <span>Service Charge (5%)</span>
+        <span>${fmt(serviceCharge)}</span>
+      </div>
+      <div class="receipt-summary-row">
+        <span>GST (18%)</span>
+        <span>${fmt(gst)}</span>
+      </div>
+      <div class="receipt-grand">
+        <span>GRAND TOTAL</span>
+        <span>${fmt(grandTotal)}</span>
+      </div>
+      <hr class="receipt-divider">
+      <div class="receipt-footer">
+        Thank you for dining with us!<br>
+        Please visit again &#9829;
+      </div>
+    `;
+
+    const billSection = document.getElementById('bill-section');
+    billSection.classList.remove('hidden');
+    billSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ─── Toast ─── */
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // Init
+  renderMenu();
+</script>
+</body>
+</html>
